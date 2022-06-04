@@ -1,0 +1,157 @@
+---
+title: "Take-home Exercise 4"
+description: I will explore two participants' activities in a day in this exercise.
+  
+author:
+  - name: Chu Yi Ning 
+    url:  https://www.linkedin.com/public-profile/settings?trk=d_flagship3_profile_self_view_public_profile
+    affiliation: SMU SCIS
+    affiliation_url: https://scis.smu.edu.sg/
+date: "`r Sys.Date()`"
+output: distill::distill_article
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Getting Started
+
+```{r}
+packages = c('scales', 'viridis', 
+             'lubridate', 'ggthemes', 
+             'gridExtra', 'tidyverse', 
+             'readxl', 'knitr',
+             'data.table', 'ViSiElse')
+for (p in packages){
+  if(!require(p, character.only = T)){
+    install.packages(p)
+  }
+  library(p,character.only = T)
+}
+```
+# Import Data
+
+```{r, eval = FALSE}
+logs1 <- read_csv("data/ParticipantStatusLogs1.csv")
+```
+
+### Participant 0 and Participant 1000's activities on 1st March 2022 will be used in this analysis
+
+```{r, eval = FALSE}
+# participant id 0:
+logs_0 <- logs1 %>%
+  mutate(date = date(timestamp),
+         time = (hour(timestamp)*60+minute(timestamp))) %>%
+  filter(participantId == 0,
+         date == '2022-03-01') %>%
+  select(participantId, date, time, currentMode:sleepStatus, timestamp)
+```
+
+```{r, eval = FALSE}
+# participant id 1000:
+logs_1000 <- logs1 %>%
+  mutate(date = date(timestamp),
+         time = (hour(timestamp)*60+minute(timestamp))) %>%
+  filter(participantId == 1000,
+         date == '2022-03-01') %>%
+  select(participantId, date, time, currentMode:sleepStatus, timestamp)
+```
+
+As opposed to loading all data every time, we extracted data from Participant 0 and Participant 1000 and stored both files in RMD format,which allowed us to reduce the size of data.
+
+```{r, eval = FALSE}
+write_rds(logs_0, 'data/logs_0.rds')
+write_rds(logs_1000, 'data/logs_1000.rds')
+```
+
+```{r}
+logs_0 <- read_rds('data/logs_0.rds')
+logs_1000 <- read_rds('data/logs_1000.rds')
+```
+
+#### Participant 0
+```{r, echo = FALSE}
+kable(head(logs_0))
+```
+
+#### Participant 1000
+```{r, echo = FALSE}
+kable(head(logs_1000))
+```
+
+
+## Transform data using [pivot_wide](https://tidyr.tidyverse.org/articles/pivot.html)
+
+```{r}
+# Participant 0
+logs_0_cm <- logs_0 %>%
+  select (timestamp,time, currentMode) %>%
+  pivot_wider(names_from = currentMode, values_from = time)
+
+logs_0_hunger <- logs_0 %>%
+  select (timestamp,time, hungerStatus) %>%
+  pivot_wider(names_from = hungerStatus, values_from = time)
+
+logs_0_sleep <- logs_0 %>%
+  select (timestamp,time, sleepStatus) %>%
+  pivot_wider(names_from = sleepStatus, values_from = time)
+
+df_0 <- left_join(logs_0_cm, logs_0_hunger) %>%
+  left_join(., logs_0_sleep)
+```
+
+```{r}
+# Participant 1000
+logs_1000_cm <- logs_1000 %>%
+  select (timestamp,time, currentMode) %>%
+  pivot_wider(names_from = currentMode, values_from = time)
+
+logs_1000_hunger <- logs_1000 %>%
+  select (timestamp,time, hungerStatus) %>%
+  pivot_wider(names_from = hungerStatus, values_from = time)
+
+logs_1000_sleep <- logs_1000 %>%
+  select (timestamp,time, sleepStatus) %>%
+  pivot_wider(names_from = sleepStatus, values_from = time)
+
+df_1000 <- left_join(logs_1000_cm, logs_1000_hunger) %>%
+  left_join(., logs_1000_sleep)
+```
+
+
+
+## Visualisation for Participant 0
+
+```{r}
+p1 <- visielse(df_0, informer = NULL )
+```
+
+## Visualisation for Participant 1000
+
+```{r}
+p1 <- visielse(df_1000, informer = NULL)
+```
+
+## Future Work
+Participant 0 and Participant 1000 are randomly selected. However, participants can be selected more meaningfully by a number of factors such as age, education level and joviality.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

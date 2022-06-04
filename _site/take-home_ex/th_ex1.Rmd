@@ -1,0 +1,85 @@
+---
+title: "Take-home Exercise 1"
+description: |
+  A new article created using the Distill format.
+author:
+  - name: Chu Yi Ning 
+    url: https://www.linkedin.com/public-profile/settings?trk=d_flagship3_profile_self_view_public_profile
+    affiliation: SMU SCIS
+    affiliation_url: https://scis.smu.edu.sg/
+date: "`r Sys.Date()`"
+output: distill::distill_article
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Overview
+
+In this take-home exercise, I will explore the demographic of the city of Engagement, Ohio USA.
+
+# Getting Started
+
+The following packages will be used in this exercise.
+
+```{r}
+packages = c('tidyverse', 'ggdist', 'ggridges',
+             'patchwork', 'ggthemes', 'hrbrthemes',
+             'ggrepel', 'ggforce')
+for(p in packages){
+  if(!require(p, character.only = T)){
+    install.packages(p)
+  }
+  library(p, character.only = T)
+}
+```
+# Importing Data
+
+```{r}
+part_data <- read_csv("data/Participants.csv")
+```
+
+# A Simple Bar Chart
+
+### Bar chart of Education Level
+```{r}
+ggplot(data=part_data, 
+       aes(x=educationLevel)) +
+  geom_bar()
+```
+The majority of people have high school or college degree.
+
+```{r}
+ggplot(data=part_data, 
+       aes(x=householdSize)) +
+  geom_bar()
+```
+```{r}
+ggplot(data=part_data, 
+             aes(x = age)) +
+  geom_histogram(bins=20, 
+                 boundary = 100,
+                 color="grey25", 
+                 fill="grey90") +
+  ggtitle("Distribution of age") +
+  theme_economist()
+```
+
+```{r}
+ggplot(data=part_data,
+aes(y = joviality, x= haveKids)) +
+geom_boxplot()
+```
+
+
+
+
+Distill is a publication format for scientific and technical writing, native to the web. 
+
+Learn more about using Distill for R Markdown at <https://rstudio.github.io/distill>.
+
+
+
+
+

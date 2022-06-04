@@ -1,0 +1,168 @@
+---
+title: "Take-home Exercise 3"
+description: |
+  A new article created using the Distill format.
+author:
+  - name: Chu Yi Ning 
+    url: https://www.linkedin.com/public-profile/settings?trk=d_flagship3_profile_self_view_public_profile
+    affiliation: SMU SCIS
+    affiliation_url: https://scis.smu.edu.sg/
+date: "`r Sys.Date()`"
+output: distill::distill_article
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Overview
+
+# Getting Started
+
+```{r}
+packages = c('tidyverse', 'patchwork', 'dplyr', 'lubridate', 'reshape2', 'ggthemes',
+             'knitr', 'zoo', 'ggplot2', 'plotly', 'scales', 'directlabels')
+for(p in packages){
+  if(!require(p, character.only = T)){
+    install.packages(p)
+  }
+  library(p, character.only = T)
+}
+```
+
+
+## Data Cleaning
+
+```{r}
+data <- read_csv("data/FinancialJournal.csv")
+dim(data)
+```
+### Order by Participant ID
+```{r, results = 'hide'}
+data_orderBypart <- data[order(data$participantId),]
+```
+
+
+```{r, echo = FALSE}
+kable(head(data_orderBypart))
+```
+
+We can see there are some duplicates for Shelter and Education.
+
+
+**distinct** function in dplyr will be used to remove duplicates
+
+```{r}
+data_clean <- data %>% distinct(participantId, timestamp, category, amount,
+                   .keep_all = TRUE)
+```
+
+```{r, echo = FALSE}
+data_clean2 <- data_clean[order(data_clean$participantId),]
+```
+
+
+```{r, echo = FALSE}
+kable(head(data_clean2))
+```
+
+```{r}
+dim(data_clean)
+```
+
+There are 1113 duplicates.
+
+### Add a new column Month which extract month from timestamp
+```{r}
+data_clean <- data_clean %>%
+  mutate(yearmonth = as.yearmon(timestamp))
+```
+
+```{r}
+ 
+data_tidy <- data_clean %>% 
+              group_by(yearmonth, category) %>%
+              summarise(amount = abs(sum(amount)),
+                             .groups = 'drop')
+
+```
+
+```{r}
+data_tidy <- data_tidy %>%
+  spread(category, amount)
+```
+
+```{r}
+data_tidy <- data_tidy %>%
+  mutate(CostofLiving = select(., Education, Food, Shelter) %>% rowSums(na.rm = TRUE))
+```
+
+```{r, echo = FALSE}
+kable(head(data_tidy))
+```
+
+
+```{r}
+data_tidy2 <- data_tidy[c(-2,-3,-5,-6)]
+```
+
+
+
+```{r}
+data_tidy3 <- melt(data_tidy2, id.vars = 'yearmonth')
+head(data_tidy3)
+```
+
+```{r}
+rename(data_tidy3, category = variable, amount = value)
+```
+
+
+
+```{r}
+p1 <- ggplot(data_tidy3, aes(x = yearmonth, y = value, colour = variable)) + 
+  geom_line(aes(linetype = variable), lwd = 1.2) + 
+  scale_color_manual(values = c("darkred", "steelblue",  "orange4"))+
+  scale_y_continuous(labels = scales::comma)+
+  ylab("Amount")+theme_economist()+theme(legend.position="none")#+
+  #geom_dl(aes(label = variable), method = list(dl.trans(x = x + .2), "last.points"))
+
+ggplotly(p1, tooltip = c('yearmonth', 'value'))
+```
+
+
+
+
+
+
+```{r, results = FALSE, echo = FALSE}
+p1 <- ggplot(data_tidy3, aes(x = yearmonth, y = value, colour = variable)) + 
+  geom_line(aes(color = variable, linetype = variable), lwd = 1.2) + 
+  scale_color_manual(values = c("darkred", "steelblue",  "orange3"))+
+  scale_y_continuous(labels = scales::comma)+
+  ylab("Amount")+theme_economist()+theme(legend.position="none")#+
+  #geom_dl(aes(label = variable), method = list(dl.trans(x = x + .2), "last.points"))
+
+ggplotly(p1)
+```
+
+```{r}
+data_filter <- data_clean %>%
+  select(participantId, timestamp, category, amount, yearmonth) %>%
+  filter(category == 'Wage' & yearmonth == 'Mar 2022' )
+```
+
+```{r}
+data_filter2 <- data_clean %>%
+  select(participantId, timestamp, category, amount, yearmonth) %>%
+  filter(category == 'Wage' & yearmonth == 'Apr 2022' )
+```
+
+```{r}
+data_filter3 <- data_clean %>%
+  select(participantId, timestamp, category, amount, yearmonth) %>%
+  filter(category == 'Wage' & participantId == '0' )
+```
+
+
+

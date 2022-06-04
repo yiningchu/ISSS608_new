@@ -1,0 +1,74 @@
+---
+title: "Take-home exercise 2"
+description: |
+  
+author:
+  - name: Chu Yi Ning 
+    url: https://www.linkedin.com/public-profile/settings?trk=d_flagship3_profile_self_view_public_profile
+    affiliation: SMU SCIS
+    affiliation_url: https://scis.smu.edu.sg/
+date: "`r Sys.Date()`"
+output: distill::distill_article
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Overview
+
+In this take-home exercise, I will do some further analysis and improvement based on my classmate, Yeo Kim Siang's work.
+
+# Getting Started
+
+We will use the following packages in this packages.
+
+```{r}
+packages = c('tidyverse', 'patchwork')
+for(p in packages){
+  if(!require(p, character.only = T)){
+    install.packages(p)
+  }
+  library(p, character.only = T)
+}
+```
+
+```{r, echo = FALSE}
+part_data <- read_csv("data/Participants.csv")
+```
+
+# Grouped Bar Chart
+
+From the existing bar charts of householdSize and haveKids, we can speculate that if household size equals to 3, there would be a kid in the household. We will use the grouped bar chart to verify that.
+
+```{r}
+ggplot(part_data, aes(fill = haveKids, x=householdSize)) + 
+    geom_bar(position="dodge", stat="count") +
+    geom_text(stat = 'count', aes(label = stat(count)), vjust = -0.5, size = 3)
+```
+
+From the bar chart above, we can confirm that there's no kids within the households which contain only 1 or 2 members.
+
+# Scatter Plot for haveKids and educationLevel, InterestGroup
+
+```{r}
+p1 <- ggplot(part_data, aes(x=haveKids, y=educationLevel)) + 
+  geom_jitter()
+
+p2 <- ggplot(part_data, aes(x=haveKids, y=interestGroup)) + 
+  geom_jitter()
+
+p1 + p2
+```
+
+
+# Would it be more joyful if having kids?
+
+```{r}
+ggplot(part_data, aes(fill = haveKids, x = joviality)) +
+  geom_density(position = "dodge")
+```  
+
+From the plot above, we can see that the closer to 1 the higher density for the group which has kids. In the meantime, the lower the joviality, the higher the density for the group which does not have kids.
+
